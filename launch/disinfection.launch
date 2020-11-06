@@ -1,0 +1,10 @@
+<launch>
+
+    <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/>
+
+    <!-- <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen" clear_params="true" ns="test">
+    </node> -->
+
+    <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner"/>
+
+</launch>
