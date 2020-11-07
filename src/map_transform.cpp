@@ -11,6 +11,8 @@
 MapTransform::MapTransform(ros::NodeHandle* nh)
 {
     tf_listener_ = TransformListener(tf_buffer_);
+
+    pub_pose_ = nh->advertise<geometry_msgs::PoseStamped>("/map_pose", 10);
 }
 
 
@@ -57,7 +59,7 @@ int main()
     while (ros::ok())
     {
         map_transform.publishPose();
-        rate.sleep();
+        loop_rate.sleep();
     }
 
     return 0;

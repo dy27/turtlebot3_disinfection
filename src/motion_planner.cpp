@@ -7,18 +7,19 @@
 
 MotionPlanner::MotionPlanner(ros::NodeHandle* nh)
 {
-    pub_waypoint_ = nh->advertise<geometry_msgs::Twist>("/cmd_vel", 10);
+    pub_waypoint_ = nh->advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10);
     // pub_vel_ = nh->advertise<geometry_msgs::Twist>("/cmd_vel", 10);
     // sub_laser_ = nh->subscribe("/scan", 1000, &MotionPlanner::laserCallback, this);
-    sub_map_ = nh->subscribe<nav_msgs::OccupancyGrid>("/map", 10);
-}
+    sub_map_ = nh->subscribe("/map", 10, &MotionPlanner::mapCallback, this);
 
-void MotionPlanner::updatePath()
-{
-
+    sub_map_pose_ = nh->subscribe("/map_pose", 10, &MotionPlanner::mapPoseCallback, this);
 }
 
 
+// void MotionPlanner::updateWaypoint()
+// {
+//
+// }
 
 
 // void MotionPlanner::publishVelocity(const std::vector<float> lin_vel, const std::vector<float> ang_vel)
@@ -53,18 +54,23 @@ void MotionPlanner::publishWaypoint(const std::vector<float> position, const std
 }
 
 
-void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
-{
-    //message members: http://docs.ros.org/melodic/api/sensor_msgs/html/msg/LaserScan.html
-
-    //example for how to access members
-    float min_angle = msg.angle_min;
-}
-
-
 void MotionPlanner::mapCallback(const nav_msgs::OccupancyGrid& msg)
 {
     // int8** map = msg.data;
+}
+
+
+void MotionPlanner::mapPoseCallback(const geometry_msgs::PoseStamped& msg)
+{
+
+    // // Compare the current pose with the destination pose
+    // if (abs(msg.pose.position.x - waypoint_.pose.position.x) < POSITION_THRESHOLD &&
+    //     abs(msg.pose.position.y - waypoint_.pose.position.y) < POSITION_THRESHOLD &&
+    //     abs(msg.pose.position.z - waypoint_.pose.position.z) < POSITION_THRESHOLD)
+    // {
+    //     waypoint_reached_ = true;
+    // }
+    current_pose_ = msg;
 }
 
 
@@ -85,11 +91,11 @@ int main(int argc, char **argv)
         ros::spinOnce();
 
         // initialise 0-vectors
-        std::vector<float> lin_vel( 3, 0 );
-        std::vector<float> ang_vel( 3, 0 );
-        lin_vel[0] = 1; // go forwards
+        std::vector<float> position( 3, 0 );
+        std::vector<float> orientation( 4, 0 );
+        // lin_vel[0] = 1; // go forwards
 
-        motion_planner.publishVelocity(lin_vel, ang_vel);
+        motion_planner.publishWaypoint(position, orientation);
 
         loop_rate.sleep();
     }

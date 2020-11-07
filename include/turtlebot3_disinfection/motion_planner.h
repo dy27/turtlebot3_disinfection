@@ -14,16 +14,28 @@
 #include <nav_msgs/MapMetaData.h>
 #include <tf2_ros/transform_listener.h>
 
+#define POSITION_THRESHOLD 0.05f
+
 class MotionPlanner
 {
     public:
         MotionPlanner(ros::NodeHandle* nh);
 
+        void publishWaypoint(const std::vector<float> position, const std::vector<float> orientation);
+
         // void publishVelocity(const std::vector<float> lin_vel, const std::vector<float> ang_vel);
 
         // void laserCallback(const sensor_msgs::LaserScan& msg);
 
+        void mapCallback(const nav_msgs::OccupancyGrid& msg);
+
+        void mapPoseCallback(const geometry_msgs::PoseStamped& msg);
+
     private:
+        geometry_msgs::PoseStamped current_pose_;
+
+        geometry_msgs::PoseStamped waypoint_;
+
         std::vector<std::vector<int>> waypoints_;
 
         // ros::Publisher pub_vel_;
@@ -31,6 +43,8 @@ class MotionPlanner
         ros::Publisher pub_waypoint_;
 
         ros::Subscriber sub_map_;
+
+        ros::Subscriber sub_map_pose_;
 
         // ros::Subscriber sub_laser_;
 
