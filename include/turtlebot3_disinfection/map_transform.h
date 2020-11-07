@@ -24,8 +24,6 @@ class MapTransform
     private:
         const tf2_ros::Buffer& tf_buffer_;
 
-        // const tf2_ros::TransformListener& tf_listener_;
-
         ros::Publisher pub_pose_;
 };
 

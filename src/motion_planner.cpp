@@ -21,30 +21,15 @@ void MotionPlanner::updateWaypoint()
     // Check if waypoint has been reached
 
     // Compare the current pose with the destination pose
+    // TODO: Should change this to check Euclidean distance
     if (abs(current_pose_.pose.position.x - waypoint_.pose.position.x) < POSITION_THRESHOLD &&
-        abs(current_pose_.pose.position.y - waypoint_.pose.position.y) < POSITION_THRESHOLD &&
-        abs(current_pose_.pose.position.z - waypoint_.pose.position.z) < POSITION_THRESHOLD)
+        abs(current_pose_.pose.position.y - waypoint_.pose.position.y) < POSITION_THRESHOLD)
     {
         // waypoint_reached_ = true;
         waypoint_.pose.position.x += 1;
     }
 }
 
-
-// void MotionPlanner::publishVelocity(const std::vector<float> lin_vel, const std::vector<float> ang_vel)
-// {
-//     geometry_msgs::Twist msg;
-//
-//     msg.linear.x = lin_vel[0];
-//     msg.linear.y = lin_vel[1];
-//     msg.linear.z = lin_vel[2];
-//
-//     msg.angular.x = ang_vel[0];
-//     msg.angular.y = ang_vel[1];
-//     msg.angular.z = ang_vel[2];
-//
-//     pub_vel_.publish(msg);
-// }
 
 void MotionPlanner::publishWaypoint(const std::vector<float> position, const std::vector<float> orientation)
 {
