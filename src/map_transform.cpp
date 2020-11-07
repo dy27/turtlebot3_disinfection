@@ -8,9 +8,10 @@
 // into coordinates of the occupancy grid.
 
 
-MapTransform::MapTransform(ros::NodeHandle* nh)
+MapTransform::MapTransform(ros::NodeHandle* nh, const tf2_ros::Buffer& tf_buffer)
+    : tf_buffer_(tf_buffer)
 {
-    tf_listener_ = TransformListener(tf_buffer_);
+    // tf_listener_ = TransformListener(tf_buffer_);
 
     pub_pose_ = nh->advertise<geometry_msgs::PoseStamped>("/map_pose", 10);
 }
@@ -18,6 +19,12 @@ MapTransform::MapTransform(ros::NodeHandle* nh)
 
 int MapTransform::publishPose()
 {
+    // tf2_ros::Buffer tf_buffer_;
+    // tf_listener_ = tf2_ros::TransformListener(tf_buffer_);
+    // tf2_ros::TransformListener tf_listener_(tf_buffer_);
+
+    // ros::Duration(2).sleep();
+
     geometry_msgs::TransformStamped transform_stamped;
     try {
         transform_stamped = tf_buffer_.lookupTransform("map", "base_link", ros::Time(0)); // get most recent transform
@@ -30,6 +37,7 @@ int MapTransform::publishPose()
     }
 
     geometry_msgs::PoseStamped msg;
+    msg.header.frame_id = "map";
 
     msg.pose.position.x = transform_stamped.transform.translation.x;
     msg.pose.position.y = transform_stamped.transform.translation.y;
@@ -46,13 +54,16 @@ int MapTransform::publishPose()
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
     ros::init(argc, argv, "map_transform"); // Register the node on ROS
 
     ros::NodeHandle nh; // Create a node handle to pass to the class constructor
 
-    MapTransform map_transform = MapTransform(&nh);
+    tf2_ros::Buffer tf_buffer;
+    tf2_ros::TransformListener tf_listener(tf_buffer);
+
+    MapTransform map_transform = MapTransform(&nh, tf_buffer);
 
     ros::Rate loop_rate(10);
 

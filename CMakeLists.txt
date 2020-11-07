@@ -13,7 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   geometry_msgs
+  nav_msgs
   message_generation
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -157,6 +159,9 @@ include_directories(
 add_executable(motion_planner src/motion_planner.cpp)
 target_link_libraries(motion_planner ${catkin_LIBRARIES})
 # add_dependencies(motion_planner turtlebot3_disinfection_generate_messages_cpp)
+
+add_executable(map_transform src/map_transform.cpp)
+target_link_libraries(map_transform ${catkin_LIBRARIES})
 
 #############
 ## Install ##

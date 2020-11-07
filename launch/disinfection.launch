@@ -5,6 +5,8 @@
 
     <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner"/>
 
+    <node name="map_transform" pkg="turtlebot3_disinfection" type="map_transform"/>
+
     <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/>
 
     <include file="$(find turtlebot3_navigation)/launch/move_base.launch"/>

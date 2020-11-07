@@ -17,14 +17,14 @@
 class MapTransform
 {
     public:
-        MapTransform(ros::NodeHandle* nh);
+        MapTransform(ros::NodeHandle* nh, const tf2_ros::Buffer& tf_buffer);
 
-        void publishPose();
+        int publishPose();
 
     private:
-        tf2_ros::Buffer tf_buffer_;
+        const tf2_ros::Buffer& tf_buffer_;
 
-        tf2_ros::TransformListener tf_listener_;
+        // const tf2_ros::TransformListener& tf_listener_;
 
         ros::Publisher pub_pose_;
 };

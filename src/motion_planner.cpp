@@ -16,10 +16,19 @@ MotionPlanner::MotionPlanner(ros::NodeHandle* nh)
 }
 
 
-// void MotionPlanner::updateWaypoint()
-// {
-//
-// }
+void MotionPlanner::updateWaypoint()
+{
+    // Check if waypoint has been reached
+
+    // Compare the current pose with the destination pose
+    if (abs(current_pose_.pose.position.x - waypoint_.pose.position.x) < POSITION_THRESHOLD &&
+        abs(current_pose_.pose.position.y - waypoint_.pose.position.y) < POSITION_THRESHOLD &&
+        abs(current_pose_.pose.position.z - waypoint_.pose.position.z) < POSITION_THRESHOLD)
+    {
+        // waypoint_reached_ = true;
+        waypoint_.pose.position.x += 1;
+    }
+}
 
 
 // void MotionPlanner::publishVelocity(const std::vector<float> lin_vel, const std::vector<float> ang_vel)
@@ -41,6 +50,8 @@ void MotionPlanner::publishWaypoint(const std::vector<float> position, const std
 {
     geometry_msgs::PoseStamped msg;
 
+    msg.header.frame_id = "map";
+
     msg.pose.position.x = position[0];
     msg.pose.position.y = position[1];
     msg.pose.position.z = position[2];
@@ -57,32 +68,23 @@ void MotionPlanner::publishWaypoint(const std::vector<float> position, const std
 void MotionPlanner::mapCallback(const nav_msgs::OccupancyGrid& msg)
 {
     // int8** map = msg.data;
+    map_ = msg;
 }
 
 
 void MotionPlanner::mapPoseCallback(const geometry_msgs::PoseStamped& msg)
 {
-
-    // // Compare the current pose with the destination pose
-    // if (abs(msg.pose.position.x - waypoint_.pose.position.x) < POSITION_THRESHOLD &&
-    //     abs(msg.pose.position.y - waypoint_.pose.position.y) < POSITION_THRESHOLD &&
-    //     abs(msg.pose.position.z - waypoint_.pose.position.z) < POSITION_THRESHOLD)
-    // {
-    //     waypoint_reached_ = true;
-    // }
     current_pose_ = msg;
 }
 
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "motion_planner"); // Register the node on ROS
+    ros::init(argc, argv, "motion_planner");
 
     ros::NodeHandle nh; // Create a node handle to pass to the class constructor
 
     MotionPlanner motion_planner = MotionPlanner(&nh);
-
-    ROS_INFO("Node started");
 
     ros::Rate loop_rate(10);
 
@@ -91,31 +93,16 @@ int main(int argc, char **argv)
         ros::spinOnce();
 
         // initialise 0-vectors
-        std::vector<float> position( 3, 0 );
-        std::vector<float> orientation( 4, 0 );
-        // lin_vel[0] = 1; // go forwards
+        std::vector<float> position(3, 0);
+        std::vector<float> orientation(4, 0);
+
+        position[0] = 2;
+        orientation[3] = 1;
 
         motion_planner.publishWaypoint(position, orientation);
 
         loop_rate.sleep();
     }
 
-    ROS_INFO("Node finished");
-
     return 0;
 }
-
-// int main(int argc, char** argv)
-// {
-//     // ROS set-ups:
-//     ros::init(argc, argv, "exampleRosClass"); //node name
-//
-//     ros::NodeHandle nh; // create a node handle; need to pass this to the class constructor
-//
-//     ROS_INFO("main: instantiating an object of type ExampleRosClass");
-//     ExampleRosClass exampleRosClass(&nh);  //instantiate an ExampleRosClass object and pass in pointer to nodehandle for constructor to use
-//
-//     ROS_INFO("main: going into spin; let the callbacks do all the work");
-//     ros::spin();
-//     return 0;
-// }
