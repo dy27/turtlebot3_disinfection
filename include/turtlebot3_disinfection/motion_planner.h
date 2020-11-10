@@ -20,6 +20,13 @@ class MotionPlanner
 
         float getRange(const sensor_msgs::LaserScan& msg, int index);
 
+        float getMinRange(const sensor_msgs::LaserScan& msg, int start_angle, int end_angle);
+
+        float median(std::vector<float>& distances);
+
+        float mapToRange(float value, const std::vector<float>& range, const std::vector<float>& new_range,
+            bool saturate);
+
         void laserCallback(const sensor_msgs::LaserScan& msg);
 
     private:
