@@ -20,7 +20,7 @@ class MotionPlanner
 
         float getRange(const sensor_msgs::LaserScan& msg, int index);
 
-        float getMinRange(const sensor_msgs::LaserScan& msg, int start_angle, int end_angle);
+        float getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range);
 
         float median(std::vector<float>& distances);
 
@@ -29,9 +29,33 @@ class MotionPlanner
 
         void laserCallback(const sensor_msgs::LaserScan& msg);
 
+        template <class T>
+        T getParam(ros::NodeHandle* nh, std::string param_name)
+        {
+            T param;
+            if(!nh->getParam(param_name, param)) {
+                ROS_ERROR("Parameter failed to load");
+            }
+            return param;
+        }
+
     private:
 
-        int mode_;
+        const float WALL_DIST;
+        const float FRONT_TURN_DIST;
+        const float WALL_MAX_TRACK_DIST;
+        const float MAX_LIN_VEL;
+        const float MAX_ANG_VEL;
+        const float MAX_RANGE;
+
+        const std::vector<int> FRONT_RANGE;
+        const std::vector<int> LEFT_RANGE;
+        const std::vector<int> LEFT_FRONT_RANGE;
+        const std::vector<int> LEFT_BACK_RANGE;
+
+        const std::vector<float> ANGLE_ERROR_RANGE;
+        const std::vector<float> DIST_ERROR_RANGE;
+        const std::vector<float> ANG_VEL_RANGE;
 
         const ros::Publisher pub_vel_;
 

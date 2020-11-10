@@ -3,6 +3,8 @@
     <!-- <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen" clear_params="true" ns="test">
     </node> -->
 
+    <rosparam command="load" file="$(find turtlebot3_disinfection)/config/wall_follower.yaml" />
+
     <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen"/>
 
     <!-- <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/> -->
