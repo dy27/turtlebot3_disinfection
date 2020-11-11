@@ -9,7 +9,8 @@
 #include <vector>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
-
+#include <std_msgs/Bool.h>
+#include <std_msgs/Int8.h>
 
 class MotionPlanner
 {
@@ -20,7 +21,8 @@ class MotionPlanner
 
         float getRange(const sensor_msgs::LaserScan& msg, int index);
 
-        float getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range);
+        float getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range,
+            int* min_index_result);
 
         float median(std::vector<float>& distances);
 
@@ -28,6 +30,10 @@ class MotionPlanner
             bool saturate);
 
         void laserCallback(const sensor_msgs::LaserScan& msg);
+
+        void robotStateCallback(const std_msgs::Int8& msg);
+
+        void scanCompleteCallback(const std_msgs::Bool& msg);
 
         template <class T>
         T getParam(ros::NodeHandle* nh, std::string param_name)
@@ -40,6 +46,12 @@ class MotionPlanner
         }
 
     private:
+        // 0: Wall following
+        // 1: Robot stopped for disinfection
+        // 2: Robot scanning for people
+        int robot_state_;
+        bool scan_complete_;
+        int scan_state_;
 
         const float WALL_DIST;
         const float FRONT_TURN_DIST;
@@ -60,6 +72,10 @@ class MotionPlanner
         const ros::Publisher pub_vel_;
 
         const ros::Subscriber sub_laser_;
+
+        const ros::Subscriber sub_robot_state_;
+
+        const ros::Subscriber sub_scan_complete_;
 };
 
 #endif

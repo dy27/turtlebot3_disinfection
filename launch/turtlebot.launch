@@ -1,0 +1,11 @@
+<launch>
+
+    <!-- <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen"/> -->
+
+    <!-- <node name="tag_reader" pkg="turtlebot3_disinfection" type="motion_planner" output="screen"/> -->
+
+    <!-- <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/> -->
+
+    <!-- <include file="$(find apriltag_ros)/launch/continuous_detection.launch"/> -->
+
+</launch>

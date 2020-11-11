@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   message_generation
   tf2_ros
+  apriltag_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,11 +74,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
+#generate_messages(
+#  DEPENDENCIES
+#  std_msgs
 #  geometry_msgs
-)
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -160,6 +161,8 @@ add_executable(motion_planner src/motion_planner.cpp)
 target_link_libraries(motion_planner ${catkin_LIBRARIES})
 # add_dependencies(motion_planner turtlebot3_disinfection_generate_messages_cpp)
 
+add_executable(disinfection_control src/disinfection_control.cpp)
+target_link_libraries(disinfection_control ${catkin_LIBRARIES})
 
 #############
 ## Install ##

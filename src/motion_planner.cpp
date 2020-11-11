@@ -6,8 +6,11 @@
 
 
 MotionPlanner::MotionPlanner(ros::NodeHandle* nh)
-    : pub_vel_(nh->advertise<geometry_msgs::Twist>("/cmd_vel", 10))
+    : robot_state_(0)
+    , pub_vel_(nh->advertise<geometry_msgs::Twist>("/cmd_vel", 10))
     , sub_laser_(nh->subscribe("/scan", 1000, &MotionPlanner::laserCallback, this))
+    , sub_robot_state_(nh->subscribe("/robot_state", 1000, &MotionPlanner::robotStateCallback, this))
+    , sub_scan_complete_(nh->subscribe("/scan_complete", 1000, &MotionPlanner::scanCompleteCallback, this))
     , WALL_DIST(getParam<float>(nh, "wall_distance"))
     , FRONT_TURN_DIST(getParam<float>(nh, "front_turn_distance"))
     , WALL_MAX_TRACK_DIST(getParam<float>(nh, "wall_track_distance"))
@@ -98,7 +101,8 @@ float MotionPlanner::mapToRange(float value, const std::vector<float>& range, co
 }
 
 
-float MotionPlanner::getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range)
+float MotionPlanner::getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range,
+    int* min_index_result=NULL)
 {
     int start_angle = angle_range[0];
     int end_angle = angle_range[1];
@@ -109,6 +113,7 @@ float MotionPlanner::getMinRange(const sensor_msgs::LaserScan& msg, const std::v
     }
 
     float min_range = MAX_RANGE + 1;
+    int min_index = -1;
     float range;
     for (int i=start_angle; i<=end_angle; i++)
     {
@@ -116,14 +121,63 @@ float MotionPlanner::getMinRange(const sensor_msgs::LaserScan& msg, const std::v
         if (range < min_range)
         {
             min_range = range;
+            min_index = i;
+
         }
     }
+
+    if (min_index_result != NULL)
+    {
+        *min_index_result = min_index;
+    }
+
     return min_range;
 }
 
 
 void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
 {
+    ROS_INFO("robot_state: %d", robot_state_);
+
+    if (robot_state_ == 1)
+    {
+        publishVelocity(0, 0);
+        return;
+    }
+    else if (robot_state_ == 2)
+    {
+        // Find the angle to the wall closest to the robot
+        int min_index;
+        const std::vector<int> full_range = {0, 359};
+        getMinRange(msg, full_range, &min_index);
+
+        // If scan is complete and the closest wall is in LEFT_RANGE
+        const int right_range_start = 250;
+        const int right_range_end = 290;
+        const int left_range_start = 70;
+        const int left_range_end = 110;
+
+        if (scan_state_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
+        {
+            ROS_INFO("Half turn complete");
+            scan_state_ = 1;
+        }
+        else if (scan_state_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
+        {
+            ROS_INFO("Full turn complete");
+
+            // Change robot state back to wall following
+            robot_state_ = 0;
+            scan_complete_ = false;
+        }
+        else
+        {
+            // Keep spinning clockwise
+            publishVelocity(0, -MAX_ANG_VEL/3);
+        }
+        return;
+    }
+
     float lin_vel;
     float ang_vel;
 
@@ -174,6 +228,20 @@ void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
     }
 
     publishVelocity(lin_vel, ang_vel);
+}
+
+void MotionPlanner::robotStateCallback(const std_msgs::Int8& msg)
+{
+    robot_state_ = msg.data;
+    if (robot_state_ == 2)
+    {
+        scan_state_ = 0;
+    }
+}
+
+void MotionPlanner::scanCompleteCallback(const std_msgs::Bool& msg)
+{
+    scan_complete_ = true;
 }
 
 

@@ -7,8 +7,14 @@
 
     <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen"/>
 
+    <node name="disinfection_control" pkg="turtlebot3_disinfection" type="disinfection_control" output="screen"/>
+
     <!-- <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/> -->
+    <!-- <param name="in" value="/raspicam_node/image" />
+    <param name="out" value="/raspicam_node/image" /> -->
+    <node name="image_republisher" pkg="image_transport" type="republish"
+        args="compressed raw in:=/raspicam_node/image out:=/raspicam_node/image"/>
 
-
+    <include file="$(find apriltag_ros)/launch/continuous_detection.launch"/>
 
 </launch>

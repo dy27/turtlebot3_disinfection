@@ -1,13 +1,13 @@
 # Algorithm Parameters
-wall_distance: 0.15
-front_turn_distance: 0.2
+wall_distance: 0.13
+front_turn_distance: 0.23
 wall_track_distance: 0.4
-angle_error_range: [-0.15, 0.15]
+angle_error_range: [-0.1, 0.1]
 distance_error_range: [-0.15, 0.15]
 front_angle_range: [335, 25]
-left_angle_range: [90, 90]
-left_front_angle_range: [80, 80]
-left_back_angle_range: [100, 100]
+left_angle_range: [60, 120]
+left_front_angle_range: [70, 70]
+left_back_angle_range: [110, 110]
 
 # Hardware Parameters
 max_linear_velocity: 0.22
