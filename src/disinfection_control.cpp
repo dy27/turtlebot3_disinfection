@@ -7,10 +7,12 @@
 
 DisinfectionControl::DisinfectionControl(ros::NodeHandle* nh)
     : pub_robot_state_(nh->advertise<std_msgs::Int8>("/robot_state", 10))
-    , pub_scan_complete_(nh->advertise<std_msgs::Bool>("/scan_complete", 10))
+    , sub_scan_complete_(nh->subscribe("/scan_complete", 1000, &DisinfectionControl::scanCompleteCallback, this))
     , sub_apriltag_(nh->subscribe("/tag_detections", 1000, &DisinfectionControl::tagDetectionCallback, this))
+    , sub_map_pose_(nh->subscribe("/map_pose", 1000, &DisinfectionControl::mapPoseCallback, this))
 {
 }
+
 
 void DisinfectionControl::publishRobotState(int state)
 {
@@ -19,43 +21,87 @@ void DisinfectionControl::publishRobotState(int state)
     pub_robot_state_.publish(msg);
 }
 
-void DisinfectionControl::publishScanComplete(bool scan_complete)
-{
-    std_msgs::Bool msg;
-    msg.data = scan_complete;
-    pub_scan_complete_.publish(msg);
-}
 
 void DisinfectionControl::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg)
 {
     // Iterate through all detected tags
     for (const auto& detection : msg.detections)
     {
-        // If a workspace is detected and the robot is current in wall following mode
-        // if (detection.id[0] >= 0 && robot_state_ == 0)
-        if (detection.id[0] >= 0)
+        int tag_id = detection.id[0];
+
+        // If a workspace is detected
+        if (tag_id >= 50)
         {
-            // Set the robot state to stopped
-            // robot_state_ = 2;
-            publishRobotState(2);
+            // Set the robot state to scanning
+            robot_state_ = 2;
+            publishRobotState(robot_state_);
+            addDetection(tag_id, detection);
         }
 
-        // if (detection.id < 100 && robot_state_ == 2)
-        // {
-        //     Person person;
-        //     p.id = detection.tag_id;
-        //
-        //     if (detected_people.find(detection.id) == detected_people.end())
-        //     {
-        //         detected_people.insert(detection.tag_id, person);
-        //     }
-        //     else
-        //     {
-        //
-        //     }
-        // }
+        if (tag_id < 100 && robot_state_ == 2)
+        {
+            addDetection(tag_id, detection);
+            // if (detected_people.find(detection.id) == detected_people.end())
+            // {
+            //     detected_people.insert(detection.tag_id, person);
+            // }
+            // else
+            // {
+            //
+            // }
+        }
     }
 }
+
+
+void DisinfectionControl::addDetection(int tag_id, const apriltag_ros::AprilTagDetection& apriltag_msg)
+{
+    std::vector<float> location;
+    location.reserve(3);
+
+    // geometry_msgs::PoseStamped msg;
+    // msg.header.frame_id =
+    // msg.pose.position.x = current_map_pose.pose.position.x + apriltag_msg.pose.pose.pose.position.x;
+    // msg.pose.position.y = current_map_pose.pose.position.y + apriltag_msg.pose.pose.pose.position.y;
+    // msg.pose.position.z = current_map_pose.pose.position.z + apriltag_msg.pose.pose.pose.position.z;
+    // msg.pose.orientation.x = current_map_pose.pose.orientation.x + apriltag_msg.pose.pose.pose.orientation.x;
+    // msg.pose.orientation.y = current_map_pose.pose.orientation.y + apriltag_msg.pose.pose.pose.orientation.y;
+    // msg.pose.orientation.z = current_map_pose.pose.orientation.z + apriltag_msg.pose.pose.pose.orientation.z;
+    // msg.pose.orientation.w = current_map_pose.pose.orientation.w + apriltag_msg.pose.pose.pose.orientation.w;
+
+    location[0] = current_map_pose.pose.position.x + apriltag_msg.pose.pose.pose.position.x;
+    location[1] = current_map_pose.pose.position.y + apriltag_msg.pose.pose.pose.position.y;
+    location[2] = current_map_pose.pose.position.z + apriltag_msg.pose.pose.pose.position.z;
+
+    std::cout << "tag_id: " << tag_id << "\t";
+    std::cout << "location: " << location[0] << "_ " << location[1] << "_ " << location[2];
+    std::cout << std::endl;
+
+    std::pair<int,std::vector<float>> pair = std::make_pair(tag_id, location);
+    // detections_.insert(std::make_pair<int,std::vector<float>>(tag_id, location));
+    detections_.insert(pair);
+}
+
+
+void DisinfectionControl::scanCompleteCallback(const std_msgs::Bool& msg)
+{
+    robot_state_ = 0;
+
+    for (auto& it : detections_)
+    {
+        int tag_id = it.first;
+        std::vector<float> location = it.second;
+        std::cout << "location_size: " << location.size() << std::endl;
+
+        // Seg faulting?
+        // std::cout << "tag_id: " << tag_id << "\t";
+        // std::cout << "location: " << location[0] << "_ " << location[1] << "_ " << location[2];
+        // std::cout << std::endl;
+    }
+
+    // scan_complete_ = true;
+}
+
 
 void DisinfectionControl::loop()
 {
@@ -74,6 +120,12 @@ void DisinfectionControl::loop()
         // }
 
     }
+}
+
+
+void DisinfectionControl::mapPoseCallback(const geometry_msgs::PoseStamped& msg)
+{
+    current_map_pose = msg;
 }
 
 

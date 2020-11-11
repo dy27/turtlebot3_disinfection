@@ -164,6 +164,9 @@ target_link_libraries(motion_planner ${catkin_LIBRARIES})
 add_executable(disinfection_control src/disinfection_control.cpp)
 target_link_libraries(disinfection_control ${catkin_LIBRARIES})
 
+add_executable(map_transform src/map_transform.cpp)
+target_link_libraries(map_transform ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

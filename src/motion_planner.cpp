@@ -2,6 +2,8 @@
  * ... text ...
  */
 
+// TODO: change scancomplete Bool message to empty message
+
 #include "turtlebot3_disinfection/motion_planner.h"
 
 
@@ -10,7 +12,7 @@ MotionPlanner::MotionPlanner(ros::NodeHandle* nh)
     , pub_vel_(nh->advertise<geometry_msgs::Twist>("/cmd_vel", 10))
     , sub_laser_(nh->subscribe("/scan", 1000, &MotionPlanner::laserCallback, this))
     , sub_robot_state_(nh->subscribe("/robot_state", 1000, &MotionPlanner::robotStateCallback, this))
-    , sub_scan_complete_(nh->subscribe("/scan_complete", 1000, &MotionPlanner::scanCompleteCallback, this))
+    , pub_scan_complete_(nh->advertise<std_msgs::Bool>("/scan_complete", 10))
     , WALL_DIST(getParam<float>(nh, "wall_distance"))
     , FRONT_TURN_DIST(getParam<float>(nh, "front_turn_distance"))
     , WALL_MAX_TRACK_DIST(getParam<float>(nh, "wall_track_distance"))
@@ -40,6 +42,13 @@ void MotionPlanner::publishVelocity(const float lin_vel, const float ang_vel)
     vel_msg.angular.z = ang_vel;
 
     pub_vel_.publish(vel_msg);
+}
+
+void MotionPlanner::publishScanComplete(bool scan_complete)
+{
+    std_msgs::Bool msg;
+    msg.data = scan_complete;
+    pub_scan_complete_.publish(msg);
 }
 
 
@@ -134,11 +143,13 @@ float MotionPlanner::getMinRange(const sensor_msgs::LaserScan& msg, const std::v
     return min_range;
 }
 
+// void MotionPlanner::performFullTurn()
+// {
+//
+// }
 
 void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
 {
-    ROS_INFO("robot_state: %d", robot_state_);
-
     if (robot_state_ == 1)
     {
         publishVelocity(0, 0);
@@ -168,7 +179,7 @@ void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
 
             // Change robot state back to wall following
             robot_state_ = 0;
-            scan_complete_ = false;
+            publishScanComplete(true);
         }
         else
         {
@@ -238,12 +249,6 @@ void MotionPlanner::robotStateCallback(const std_msgs::Int8& msg)
         scan_state_ = 0;
     }
 }
-
-void MotionPlanner::scanCompleteCallback(const std_msgs::Bool& msg)
-{
-    scan_complete_ = true;
-}
-
 
 int main(int argc, char **argv)
 {
