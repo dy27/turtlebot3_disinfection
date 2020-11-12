@@ -50,8 +50,8 @@ class MotionPlanner
         // 1: Robot stopped for disinfection
         // 2: Robot scanning for people
         int robot_state_;
-        
-        int scan_state_;
+
+        int scan_progress_;
 
         const float WALL_DIST;
         const float FRONT_TURN_DIST;

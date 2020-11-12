@@ -168,17 +168,17 @@ void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
         const int left_range_start = 70;
         const int left_range_end = 110;
 
-        if (scan_state_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
+        if (scan_progress_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
         {
             ROS_INFO("Half turn complete");
-            scan_state_ = 1;
+            scan_progress_ = 1;
         }
-        else if (scan_state_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
+        else if (scan_progress_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
         {
             ROS_INFO("Full turn complete");
 
-            // Change robot state back to wall following
-            robot_state_ = 0;
+            // Change robot state back to stopped
+            robot_state_ = 1;
             publishScanComplete(true);
         }
         else
@@ -246,7 +246,7 @@ void MotionPlanner::robotStateCallback(const std_msgs::Int8& msg)
     robot_state_ = msg.data;
     if (robot_state_ == 2)
     {
-        scan_state_ = 0;
+        scan_progress_ = 0;
     }
 }
 

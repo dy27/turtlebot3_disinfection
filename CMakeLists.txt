@@ -53,11 +53,13 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
+add_message_files(
+  DIRECTORY msg
+  FILES
+  Scan.msg
 #   Message1.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -74,11 +76,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#  DEPENDENCIES
-#  std_msgs
-#  geometry_msgs
-#)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -163,9 +165,13 @@ target_link_libraries(motion_planner ${catkin_LIBRARIES})
 
 add_executable(disinfection_control src/disinfection_control.cpp)
 target_link_libraries(disinfection_control ${catkin_LIBRARIES})
+add_dependencies(disinfection_control turtlebot3_disinfection_generate_messages_cpp)
 
 add_executable(map_transform src/map_transform.cpp)
 target_link_libraries(map_transform ${catkin_LIBRARIES})
+
+add_executable(social_distance_monitor src/social_distance_monitor.cpp)
+target_link_libraries(social_distance_monitor ${catkin_LIBRARIES})
 
 #############
 ## Install ##
