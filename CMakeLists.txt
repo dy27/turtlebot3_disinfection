@@ -163,9 +163,9 @@ add_executable(motion_planner src/motion_planner.cpp)
 target_link_libraries(motion_planner ${catkin_LIBRARIES})
 # add_dependencies(motion_planner turtlebot3_disinfection_generate_messages_cpp)
 
-add_executable(disinfection_control src/disinfection_control.cpp)
-target_link_libraries(disinfection_control ${catkin_LIBRARIES})
-add_dependencies(disinfection_control turtlebot3_disinfection_generate_messages_cpp)
+add_executable(tag_scanner src/tag_scanner.cpp)
+target_link_libraries(tag_scanner ${catkin_LIBRARIES})
+add_dependencies(tag_scanner turtlebot3_disinfection_generate_messages_cpp)
 
 add_executable(map_transform src/map_transform.cpp)
 target_link_libraries(map_transform ${catkin_LIBRARIES})

@@ -1,8 +1,8 @@
-#ifndef DISINFECTION_CONTROL_
-#define DISINFECTION_CONTROL_
+#ifndef TAG_SCANNER_
+#define TAG_SCANNER_
 
 #include "ros/ros.h"
-// #include "disinfection_database.h"
+#include "turtlebot3_disinfection/motion_planner.h" // Access to the RobotState enum
 #include "turtlebot3_disinfection/Scan.h"
 
 #include <iostream>
@@ -10,20 +10,20 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <std_msgs/Bool.h>
-#include <apriltag_ros/AprilTagDetectionArray.h>
-#include <apriltag_ros/AprilTagDetection.h>
+#include <utility>      // std::pair
+#include <std_msgs/Empty.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Time.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <utility>      // std::pair
+#include <apriltag_ros/AprilTagDetection.h>
+#include <apriltag_ros/AprilTagDetectionArray.h>
 
 
-
-class DisinfectionControl
+class TagScanner
 {
     public:
-        DisinfectionControl(ros::NodeHandle* nh);
+
+        TagScanner(ros::NodeHandle* nh);
 
         void publishRobotState(int state);
 
@@ -31,7 +31,7 @@ class DisinfectionControl
 
         void addDetection(int tag_id, const apriltag_ros::AprilTagDetection& apriltag_msg);
 
-        void scanCompleteCallback(const std_msgs::Bool& msg);
+        void scanCompleteCallback(const std_msgs::Empty& msg);
 
         void mapPoseCallback(const geometry_msgs::PoseStamped& msg);
 
@@ -50,7 +50,7 @@ class DisinfectionControl
 
         const ros::Publisher pub_tag_scan_;
 
-        const ros::Subscriber sub_scan_complete_;
+        const ros::Subscriber sub_rotation_complete_;
 
         const ros::Subscriber sub_apriltag_;
 

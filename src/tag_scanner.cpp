@@ -1,29 +1,47 @@
 /**
- * ... text ...
+ * tag_scanner.cpp
+ *
+ * Node for scanning April tags corresponding to people and workspaces. When a workspace is detected, a scan is
+ * performed for people working at the workspace.
+ *
+ * Authors: Annie Sun, Bharath Santosh, Bohan Zhang, David Young
  */
 
-#include "turtlebot3_disinfection/disinfection_control.h"
+#include "turtlebot3_disinfection/tag_scanner.h"
 
 
-DisinfectionControl::DisinfectionControl(ros::NodeHandle* nh)
+/**
+ * Constructs a class instance and initialises publishers and subscribers.
+ *
+ * @param nh Pointer to a ROS NodeHandle instance. Used to initialise publishers and subscribers.
+ */
+TagScanner::TagScanner(ros::NodeHandle* nh)
     : pub_robot_state_(nh->advertise<std_msgs::Int8>("/robot_state", 10))
     , pub_tag_scan_(nh->advertise<turtlebot3_disinfection::Scan>("/tag_scan", 10))
-    , sub_scan_complete_(nh->subscribe("/scan_complete", 1000, &DisinfectionControl::scanCompleteCallback, this))
-    , sub_apriltag_(nh->subscribe("/tag_detections", 1000, &DisinfectionControl::tagDetectionCallback, this))
-    , sub_map_pose_(nh->subscribe("/map_pose", 1000, &DisinfectionControl::mapPoseCallback, this))
+    , sub_rotation_complete_(nh->subscribe("/rotation_complete", 1000, &TagScanner::scanCompleteCallback, this))
+    , sub_apriltag_(nh->subscribe("/tag_detections", 1000, &TagScanner::tagDetectionCallback, this))
+    , sub_map_pose_(nh->subscribe("/map_pose", 1000, &TagScanner::mapPoseCallback, this))
 {
 }
 
-
-void DisinfectionControl::publishRobotState(int state)
+/**
+ * Publishes a robot state to the /robot_state topic to request a change in behaviour in the motion_planner node.
+ *
+ * @param state Integer value representing the robot state. The values are
+ */
+void TagScanner::publishRobotState(int state)
 {
     std_msgs::Int8 msg;
     msg.data = state;
     pub_robot_state_.publish(msg);
 }
 
-
-void DisinfectionControl::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg)
+/**
+ * Publishes a robot state to the /robot_state topic to request a change in behaviour in the motion_planner node.
+ *
+ * @param state Integer value representing the robot state.
+ */
+void TagScanner::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg)
 {
     // Iterate through all detected tags
     for (const auto& detection : msg.detections)
@@ -34,12 +52,12 @@ void DisinfectionControl::tagDetectionCallback(const apriltag_ros::AprilTagDetec
         if (tag_id >= 50)
         {
             // Set the robot state to scanning
-            robot_state_ = 2;
+            robot_state_ = MotionPlanner::RobotState::STOPPED;
             publishRobotState(robot_state_);
             addDetection(tag_id, detection);
         }
 
-        if (tag_id < 50 && robot_state_ == 2)
+        if (tag_id < 50 && robot_state_ == MotionPlanner::RobotState::STOPPED)
         {
             addDetection(tag_id, detection);
             // if (detected_people.find(detection.id) == detected_people.end())
@@ -55,7 +73,7 @@ void DisinfectionControl::tagDetectionCallback(const apriltag_ros::AprilTagDetec
 }
 
 
-void DisinfectionControl::addDetection(int tag_id, const apriltag_ros::AprilTagDetection& apriltag_msg)
+void TagScanner::addDetection(int tag_id, const apriltag_ros::AprilTagDetection& apriltag_msg)
 {
     geometry_msgs::PoseStamped msg;
     msg.header = apriltag_msg.pose.header;
@@ -74,7 +92,7 @@ void DisinfectionControl::addDetection(int tag_id, const apriltag_ros::AprilTagD
 }
 
 
-void DisinfectionControl::scanCompleteCallback(const std_msgs::Bool& msg)
+void TagScanner::scanCompleteCallback(const std_msgs::Empty& msg)
 {
     // Robot is in wall following state
 
@@ -107,7 +125,7 @@ void DisinfectionControl::scanCompleteCallback(const std_msgs::Bool& msg)
     }
 
     // Return to wall following
-    robot_state_ = 0;
+    robot_state_ = MotionPlanner::RobotState::WALL_FOLLOWING;
     publishRobotState(robot_state_);
 
     pub_tag_scan_.publish(scan_msg);
@@ -117,27 +135,7 @@ void DisinfectionControl::scanCompleteCallback(const std_msgs::Bool& msg)
 }
 
 
-// void DisinfectionControl::loop()
-// {
-//     while (ros::ok())
-//     {
-//         ros::spinOnce();
-//
-//         // if (robot_state_ == 1)
-//         // {
-//         //     robot_state = 2;
-//         //     publishRobotState(2);
-//         // }
-//         // else if (robot_state == 2)
-//         // {
-//         //
-//         // }
-//
-//     }
-// }
-
-
-void DisinfectionControl::mapPoseCallback(const geometry_msgs::PoseStamped& msg)
+void TagScanner::mapPoseCallback(const geometry_msgs::PoseStamped& msg)
 {
     current_map_pose = msg;
 }
@@ -145,22 +143,13 @@ void DisinfectionControl::mapPoseCallback(const geometry_msgs::PoseStamped& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "disinfection_control");
+    ros::init(argc, argv, "tag_scanner");
 
     ros::NodeHandle nh; // Create a node handle to pass to the class constructor
 
-    DisinfectionControl disinfection_control = DisinfectionControl(&nh);
-
-    // disinfection_control.loop();
+    TagScanner tag_scanner = TagScanner(&nh);
 
     ros::spin();
-
-    // while (ros::ok())
-    // {
-    //     ros::spinOnce();
-    //
-    //     if ()
-    // }
 
     return 0;
 }

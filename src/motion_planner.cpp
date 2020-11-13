@@ -8,11 +8,11 @@
 
 
 MotionPlanner::MotionPlanner(ros::NodeHandle* nh)
-    : robot_state_(0)
+    : robot_state_(RobotState::WALL_FOLLOWING)
     , pub_vel_(nh->advertise<geometry_msgs::Twist>("/cmd_vel", 10))
     , sub_laser_(nh->subscribe("/scan", 1000, &MotionPlanner::laserCallback, this))
     , sub_robot_state_(nh->subscribe("/robot_state", 1000, &MotionPlanner::robotStateCallback, this))
-    , pub_scan_complete_(nh->advertise<std_msgs::Bool>("/scan_complete", 10))
+    , pub_rotation_complete_(nh->advertise<std_msgs::Empty>("/rotation_complete", 10))
     , WALL_DIST(getParam<float>(nh, "wall_distance"))
     , FRONT_TURN_DIST(getParam<float>(nh, "front_turn_distance"))
     , WALL_MAX_TRACK_DIST(getParam<float>(nh, "wall_track_distance"))
@@ -29,8 +29,13 @@ MotionPlanner::MotionPlanner(ros::NodeHandle* nh)
 {
 }
 
-
-void MotionPlanner::publishVelocity(const float lin_vel, const float ang_vel)
+/**
+ * Publishes to the /cmd_vel topic to make the robot move at the specified linear and angular velocities.
+ *
+ * @param lin_vel Linear velocity in metres per second.
+ * @param ang_vel Angular velocity in radians per second.
+ */
+void MotionPlanner::publishVelocity(float lin_vel, float ang_vel)
 {
     geometry_msgs::Twist vel_msg;
 
@@ -44,14 +49,21 @@ void MotionPlanner::publishVelocity(const float lin_vel, const float ang_vel)
     pub_vel_.publish(vel_msg);
 }
 
-void MotionPlanner::publishScanComplete(bool scan_complete)
+/**
+ * Publishes to the /rotation_complete topic to signal that a full rotation has been performed by the robot.
+ */
+void MotionPlanner::publishScanComplete()
 {
-    std_msgs::Bool msg;
-    msg.data = scan_complete;
-    pub_scan_complete_.publish(msg);
+    std_msgs::Empty msg;
+    pub_rotation_complete_.publish(msg);
 }
 
-
+/**
+ * Publishes to the /cmd_vel topic to make the robot move at the specified linear and angular velocities.
+ *
+ * @param lin_vel Linear velocity in metres per second.
+ * @param ang_vel Angular velocity in radians per second.
+ */
 float MotionPlanner::getRange(const sensor_msgs::LaserScan& msg, int index)
 {
     std::vector<float> ranges;
@@ -143,52 +155,8 @@ float MotionPlanner::getMinRange(const sensor_msgs::LaserScan& msg, const std::v
     return min_range;
 }
 
-// void MotionPlanner::performFullTurn()
-// {
-//
-// }
-
-void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
+void MotionPlanner::robotFollowWall(const sensor_msgs::LaserScan& msg)
 {
-    if (robot_state_ == 1)
-    {
-        publishVelocity(0, 0);
-        return;
-    }
-    else if (robot_state_ == 2)
-    {
-        // Find the angle to the wall closest to the robot
-        int min_index;
-        const std::vector<int> full_range = {0, 359};
-        getMinRange(msg, full_range, &min_index);
-
-        // If scan is complete and the closest wall is in LEFT_RANGE
-        const int right_range_start = 250;
-        const int right_range_end = 290;
-        const int left_range_start = 70;
-        const int left_range_end = 110;
-
-        if (scan_progress_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
-        {
-            ROS_INFO("Half turn complete");
-            scan_progress_ = 1;
-        }
-        else if (scan_progress_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
-        {
-            ROS_INFO("Full turn complete");
-
-            // Change robot state back to stopped
-            robot_state_ = 1;
-            publishScanComplete(true);
-        }
-        else
-        {
-            // Keep spinning clockwise
-            publishVelocity(0, -MAX_ANG_VEL/3);
-        }
-        return;
-    }
-
     float lin_vel;
     float ang_vel;
 
@@ -241,10 +209,66 @@ void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
     publishVelocity(lin_vel, ang_vel);
 }
 
+void MotionPlanner::robotRotate(const sensor_msgs::LaserScan& msg)
+{
+    // Find the angle to the wall closest to the robot
+    int min_index;
+    const std::vector<int> full_range = {0, 359};
+    getMinRange(msg, full_range, &min_index);
+
+    // If scan is complete and the closest wall is in LEFT_RANGE
+    const int right_range_start = 250;
+    const int right_range_end = 290;
+    const int left_range_start = 70;
+    const int left_range_end = 110;
+
+    if (scan_progress_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
+    {
+        ROS_INFO("Half turn complete");
+        scan_progress_ = 1;
+    }
+    else if (scan_progress_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
+    {
+        ROS_INFO("Full turn complete");
+
+        // Change robot state back to stopped
+        robot_state_ = RobotState::STOPPED;
+        publishScanComplete();
+    }
+    else
+    {
+        // Keep spinning clockwise
+        publishVelocity(0, -MAX_ANG_VEL/3);
+    }
+    return;
+}
+
+
+
+void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
+{
+    switch (robot_state_)
+    {
+        case RobotState::WALL_FOLLOWING:
+            robotFollowWall(msg);
+
+        case RobotState::STOPPED:
+            publishVelocity(0, 0);
+            break;
+
+        case RobotState::TAG_SCANNING:
+            robotRotate(msg);
+            break;
+
+        default:
+            break;
+    }
+}
+
 void MotionPlanner::robotStateCallback(const std_msgs::Int8& msg)
 {
     robot_state_ = msg.data;
-    if (robot_state_ == 2)
+    if (robot_state_ == RobotState::TAG_SCANNING)
     {
         scan_progress_ = 0;
     }

@@ -19,12 +19,6 @@ MapTransform::MapTransform(ros::NodeHandle* nh, const tf2_ros::Buffer& tf_buffer
 
 int MapTransform::publishPose()
 {
-    // tf2_ros::Buffer tf_buffer_;
-    // tf_listener_ = tf2_ros::TransformListener(tf_buffer_);
-    // tf2_ros::TransformListener tf_listener_(tf_buffer_);
-
-    // ros::Duration(2).sleep();
-
     geometry_msgs::TransformStamped transform_stamped;
     try {
         transform_stamped = tf_buffer_.lookupTransform("map", "base_link", ros::Time(0)); // get most recent transform

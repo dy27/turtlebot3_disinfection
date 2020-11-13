@@ -9,17 +9,23 @@
 #include <vector>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
 #include <std_msgs/Int8.h>
 
 class MotionPlanner
 {
     public:
+        enum RobotState {
+            WALL_FOLLOWING,
+            STOPPED,
+            TAG_SCANNING
+        };
+
         MotionPlanner(ros::NodeHandle* nh);
 
-        void publishVelocity(const float lin_vel, const float ang_vel);
+        void publishVelocity(float lin_vel, float ang_vel);
 
-        void publishScanComplete(bool scan_complete);
+        void publishScanComplete();
 
         float getRange(const sensor_msgs::LaserScan& msg, int index);
 
@@ -30,6 +36,10 @@ class MotionPlanner
 
         float mapToRange(float value, const std::vector<float>& range, const std::vector<float>& new_range,
             bool saturate);
+
+        void robotFollowWall(const sensor_msgs::LaserScan& msg);
+
+        void robotRotate(const sensor_msgs::LaserScan& msg);
 
         void laserCallback(const sensor_msgs::LaserScan& msg);
 
@@ -75,7 +85,7 @@ class MotionPlanner
 
         const ros::Subscriber sub_robot_state_;
 
-        const ros::Publisher pub_scan_complete_;
+        const ros::Publisher pub_rotation_complete_;
 };
 
 #endif
