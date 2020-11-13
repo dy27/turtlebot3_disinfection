@@ -65,7 +65,7 @@ void DisinfectionDatabase::printScans()
     for (auto& scan_msg : scan_list_)
     {
         std::cout << "Scan ID: " << scan_index << std::endl;
-        std::cout << "Scan Time: " << scan_msg.scan_end_time << std::endl;
+        std::cout << "Scan Time: " << scan_msg.scan_end_time;
         std::cout << "Workspace ID: " << scan_msg.workspace_id << std::endl;
         std::cout << "People:" << std::endl;
         for (auto& person_id : scan_msg.people_ids)
@@ -116,8 +116,12 @@ void DisinfectionDatabase::tagScanCallback(const turtlebot3_disinfection::Scan& 
         workspace->disinfection_times.push_back(msg.scan_end_time.data);
     }
 
+    workspace_database_.insert(std::make_pair(workspace->tag_id, workspace));
+
 
     int n_people = msg.people_ids.size();
+    ROS_INFO("n_people: %d", n_people);
+    ROS_INFO("n_people: %d", msg.people_poses.size());
     for (int i=0; i<n_people; i++)
     {
         // Attempt to find the person in the database map
@@ -142,6 +146,9 @@ void DisinfectionDatabase::tagScanCallback(const turtlebot3_disinfection::Scan& 
         person->detection_locations.push_back({(float)msg.people_poses[i].pose.position.x,
                                                   (float)msg.people_poses[i].pose.position.y,
                                                   (float)msg.people_poses[i].pose.position.z});
+        person->last_seen_workspace_id = workspace->tag_id;
+
+        person_database_.insert(std::make_pair(person->tag_id, person));
     }
 }
 
@@ -149,6 +156,8 @@ void userInputLoop(DisinfectionDatabase* database)
 {
     while (true)
     {
+        // std::cout << "[database]>> ";
+
         std::string user_input;
         std::cin >> user_input;
 
@@ -179,7 +188,7 @@ int main(int argc, char **argv)
 
     ros::spin();
 
-    user_input_thread.join();
+    user_input_thread.interrupt();
 
     return 0;
 }

@@ -7,7 +7,7 @@
 
     <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen"/>
 
-    <node name="tag_scanner" pkg="turtlebot3_disinfection" type="tag_scanner" output="screen"/>
+    <!-- <node name="tag_scanner" pkg="turtlebot3_disinfection" type="tag_scanner" output="screen"/> -->
 
     <node name="map_transform" pkg="turtlebot3_disinfection" type="map_transform" output="screen"/>
 

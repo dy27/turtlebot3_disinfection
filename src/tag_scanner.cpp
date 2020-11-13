@@ -51,23 +51,30 @@ void TagScanner::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray
         // If a workspace is detected
         if (tag_id >= 50)
         {
+            // If this detection was the last workspace to be scanned
+            if (last_workspace_scanned_id == tag_id)
+            {
+                // If the workspace was scanned already scanned in the last 20 seconds
+                ros::Duration diff = detection.pose.header.stamp - last_workspace_scanned_time;
+                if (diff < ros::Duration(20))
+                {
+                    // Skip scanning this workspace
+                    continue;
+                }
+            }
             // Set the robot state to scanning
             robot_state_ = MotionPlanner::RobotState::TAG_SCANNING;
             publishRobotState(robot_state_);
             addDetection(tag_id, detection);
+
+            // last_workspace_scanned = detection;
+            last_workspace_scanned_id = tag_id;
+            last_workspace_scanned_time = detection.pose.header.stamp;
         }
 
-        if (tag_id < 50 && robot_state_ == MotionPlanner::RobotState::STOPPED)
+        if (tag_id < 50 && robot_state_ == MotionPlanner::RobotState::TAG_SCANNING)
         {
             addDetection(tag_id, detection);
-            // if (detected_people.find(detection.id) == detected_people.end())
-            // {
-            //     detected_people.insert(detection.tag_id, person);
-            // }
-            // else
-            // {
-            //
-            // }
         }
     }
 }
@@ -87,18 +94,19 @@ void TagScanner::addDetection(int tag_id, const apriltag_ros::AprilTagDetection&
 
     ROS_INFO("tag_id: %d\tposition: %.3f %.3f %.3f", tag_id, msg.pose.position.x, msg.pose.position.y, msg.pose.position.z);
 
-    std::pair<int,geometry_msgs::PoseStamped> pair = std::make_pair(tag_id, msg);
-    detections_.insert(pair);
+    // std::pair<int,geometry_msgs::PoseStamped> pair = std::make_pair(tag_id, msg);
+    // detections_.insert(pair);
+    detections_.insert(std::make_pair(tag_id, msg));
 }
 
 
 void TagScanner::scanCompleteCallback(const std_msgs::Empty& msg)
 {
-    // Robot is in wall following state
-
-
     turtlebot3_disinfection::Scan scan_msg;
     scan_msg.scan_end_time.data = ros::Time::now();
+
+    // std::vector<int> people_ids;
+    // std::vector<geometry_msgs::PoseStamped> people_poses;
 
     for (auto& it : detections_)
     {
@@ -112,16 +120,23 @@ void TagScanner::scanCompleteCallback(const std_msgs::Empty& msg)
         }
         else
         {
+            ROS_INFO("pushing back person");
+            // people_ids.push_back(tag_id)
+            // people_poses.push_back(pose_msg);
             scan_msg.people_ids.push_back(tag_id);
             scan_msg.people_poses.push_back(pose_msg);
+            ROS_INFO("new num_people: %d", scan_msg.people_ids.size());
         }
     }
+
+    // scan_msg.people_ids = people_ids;
+    // scan_msg.people_poses = people_poses;
 
     // If no people were detected in the workspace
     if (scan_msg.people_ids.size() == 0)
     {
         // Sleep to represent disinfecting
-        ros::Duration(4).sleep();
+        ros::Duration(3).sleep();
         scan_msg.disinfected = true;
     }
     else

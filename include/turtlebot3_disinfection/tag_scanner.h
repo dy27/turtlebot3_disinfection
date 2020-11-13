@@ -38,11 +38,12 @@ class TagScanner
     private:
         int robot_state_;
 
-        // int scan_count_;
-
-        // Workspace* detected_workspace;
-        // // std::vector<Person> detected_people;
         std::unordered_map<int,geometry_msgs::PoseStamped> detections_;
+
+        int last_workspace_scanned_id;
+        ros::Time last_workspace_scanned_time;
+
+        apriltag_ros::AprilTagDetection last_workspace_scanned;
 
         geometry_msgs::PoseStamped current_map_pose;
 
