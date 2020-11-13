@@ -80,6 +80,8 @@ float SocialDistanceMonitor::calculateDistance(const geometry_msgs::Pose& msg1,
 
 // void SocialDistanceMonitor::sendAlert()
 
+// TODO: make separation_distance a launch parameter.
+
 int main(int argc, char **argv)
 {
     const float separation_distance = 0.1f;

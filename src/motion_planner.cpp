@@ -59,30 +59,42 @@ void MotionPlanner::publishScanComplete()
 }
 
 /**
- * Publishes to the /cmd_vel topic to make the robot move at the specified linear and angular velocities.
+ * Returns the distance at a certain index in the array of measurements from the laser. For the turtlebot, the index is
+ * equivalent to the angle in degrees as each index increment corresponds to 1 degree.
+ * The distance at a certain angle/index is returned as the median distance of its distance value and the distances of
+ * a number of adjacent measurements, determined by the n_measurements parameter.
  *
- * @param lin_vel Linear velocity in metres per second.
- * @param ang_vel Angular velocity in radians per second.
+ * e.g. If the function is called with an index/angle of 10 with the default value n_measurements=5, the median of the
+ * 5 measurements in the range of [8,12] is returned.
+ *
+ * @param msg LaserScan msg received in the laserCallback callback function.
+ * @param int index Index of the distance measurement in the array of measurements from the laser sensor.
+ * @param n_measurements Number of adjacent measurements to use for the calculation of the median distance.
  */
-float MotionPlanner::getRange(const sensor_msgs::LaserScan& msg, int index)
+float MotionPlanner::getRange(const sensor_msgs::LaserScan& msg, int index, int n_measurements=5)
 {
-    std::vector<float> ranges;
-    ranges.reserve(5);
+    std::vector<float> measurements;
+    measurements.reserve(n_measurements);
+
     float range;
-    for (int i=0; i<5; i++)
+    for (int i=0; i<n_measurements; i++)
     {
-        range = msg.ranges[index-2];
+        range = msg.ranges[index-(n_measurements/2)];
         if (range < 0.001 || range > msg.range_max)
         {
             range = MAX_RANGE;
         }
-        ranges[i] = range;
+        measurements[i] = range;
     }
-
-    return median(ranges);
+    return median(measurements);
 }
 
-
+/**
+ * Returns the median of a vector of float values. Note that this function modifies the vector parameter in the calling
+ * scope as it is passed by reference.
+ *
+ * @param distances The vector of float values to compute the median of.
+ */
 float MotionPlanner::median(std::vector<float>& distances)
 {
     std::sort(distances.begin(), distances.end());
@@ -97,7 +109,19 @@ float MotionPlanner::median(std::vector<float>& distances)
     }
 }
 
-
+/**
+ * Given a value, an interval, and a new interval, computes the new value which divides the new interval in the same
+ * ratio that the given value divides the given interval. This is used in the proportional controller to map a range of
+ * error values to a range of velocities.
+ *
+ * e.g. If a value of 0.1 is given with an interval of [0,1] and the new interval is given as [0,10], the function will
+ * return the new value of 1.
+ *
+ * @param value Float value in the given interval.
+ * @param range Vector of floats to use as the interval.
+ * @param new_range Vector of floats to use as the new interval.
+ * @param saturate If set to true, the return value is clipped if the value is mapped to outside the new interval.
+ */
 float MotionPlanner::mapToRange(float value, const std::vector<float>& range, const std::vector<float>& new_range,
     bool saturate=true)
 {
@@ -117,7 +141,6 @@ float MotionPlanner::mapToRange(float value, const std::vector<float>& range, co
 
         mapped_value = new_range[0] + percent * (new_range[1] - new_range[0]);
     }
-
     return mapped_value;
 }
 
@@ -242,7 +265,6 @@ void MotionPlanner::robotRotate(const sensor_msgs::LaserScan& msg)
     }
     return;
 }
-
 
 
 void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)

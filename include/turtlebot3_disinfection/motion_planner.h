@@ -27,7 +27,7 @@ class MotionPlanner
 
         void publishScanComplete();
 
-        float getRange(const sensor_msgs::LaserScan& msg, int index);
+        float getRange(const sensor_msgs::LaserScan& msg, int index, int n_measurements);
 
         float getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range,
             int* min_index_result);

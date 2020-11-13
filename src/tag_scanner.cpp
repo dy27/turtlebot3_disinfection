@@ -98,7 +98,7 @@ void TagScanner::scanCompleteCallback(const std_msgs::Empty& msg)
 
 
     turtlebot3_disinfection::Scan scan_msg;
-    // scan_msg.scan_end_time = ros::Time::now();
+    scan_msg.scan_end_time.data = ros::Time::now();
 
     for (auto& it : detections_)
     {
@@ -122,6 +122,11 @@ void TagScanner::scanCompleteCallback(const std_msgs::Empty& msg)
     {
         // Sleep to represent disinfecting
         ros::Duration(3).sleep();
+        scan_msg.disinfected = true;
+    }
+    else
+    {
+        scan_msg.disinfected = false;
     }
 
     // Return to wall following

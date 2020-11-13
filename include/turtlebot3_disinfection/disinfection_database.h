@@ -1,5 +1,5 @@
-#ifndef DISINFECTION_CONTROL_
-#define DISINFECTION_CONTROL_
+#ifndef DISINFECTION_DATABASE_
+#define DISINFECTION_DATABASE_
 
 #include "ros/ros.h"
 
@@ -8,62 +8,115 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <apriltags_ros/AprilTagDetectionArray.h>
+#include <turtlebot3_disinfection/Scan.h>
+
+#include <std_msgs/Int8.h>
+#include <std_msgs/Time.h>
+#include <geometry_msgs/PoseStamped.h>
 
 
-class DetectionObject
+struct Location
 {
-public:
+    float x;
+    float y;
+    float z;
+};
+
+
+struct DetectionObject
+{
     int tag_id;
-    ros::Time last_detection_time;
+    std::vector<ros::Time> detection_times;
+    std::vector<Location> detection_locations;
+
+    DetectionObject(int id) : tag_id(id) {}
 };
 
 
-class Person : DetectionObject
+struct Person : DetectionObject
 {
-public:
     std::string name;
+
+    Person(int person_id)
+        : DetectionObject(person_id)
+        , name("Person" + std::to_string(person_id))
+    {
+    }
 };
 
 
-class Workspace : DetectionObject
+struct Workspace : DetectionObject
 {
-public:
-    ros::Time last_disinfection_time;
+    std::vector<ros::Time> disinfection_times;
+
+    Workspace(int workspace_id) : DetectionObject(workspace_id) {}
 };
 
 
-class Scan
-{
-public:
-    Workspace* workspace;
-    std::unordered_map<int,Person*> people;
-    ros::Time scan_end_time;
-    // std::vector<Person> people;
-};
+// struct ScanEntry
+// {
+//     const int workspace_id;
+//     const Location workspace_location;
+//
+//     const std::vector<int> people_ids;
+//     const std::vector<Location> people_locations;
+//
+//     const ros::Time scan_end_time;
+//
+//     const bool disinfected;
+//
+//     ScanEntry(const turtlebot3_disinfection::Scan& msg)
+//         : workspace_id(msg.workspace_id)
+//         , workspace_location({(float)msg.workspace_pose.pose.position.x,
+//                               (float)msg.workspace_pose.pose.position.y,
+//                               (float)msg.workspace_pose.pose.position.z})
+//         , people_ids(msg.people_ids)
+//         , people_locations(getPeopleLocations(msg))
+//         , scan_end_time(msg.scan_end_time.data)
+//         , disinfected(msg.disinfected)
+//     {
+//     }
+//
+//     std::vector<Location> getPeopleLocations(const turtlebot3_disinfection::Scan& msg)
+//     {
+//         std::vector<Location> locations;
+//         locations.reserve(msg.people_ids.size());
+//
+//         for (auto& pose_msg : msg.people_poses)
+//         {
+//             locations.push_back({pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z});
+//         }
+//
+//         return locations;
+//     }
+// };
 
 
 class DisinfectionDatabase
 {
 public:
-    DisinfectionControl(ros::NodeHandle* nh);
+    DisinfectionDatabase(ros::NodeHandle* nh);
 
-    void printLog();
+    ~DisinfectionDatabase();
 
-    void publishDatabase(const ros::Publisher& )
+    void printWorkspaces();
 
-    void addScanEntry(int workspace_id, std::vector<int> people_ids, ros::Time scan_end_time);
+    void printPeople();
+
+    void printScanLog();
+
+    void tagScanCallback(const turtlebot3_disinfection::Scan& msg);
 
 private:
 
-    std::unordered_map<int,Workspace> workspace_database;
-    std::unordered_map<int,Person> people_database;
+    std::unordered_map<int,Workspace*> workspace_database_;
+    std::unordered_map<int,Person*> person_database_;
 
-    std::vector<Scan> scan_list;
+    // std::vector<ScanEntry> scan_list_;
 
-    const std::unordered_map<int,std::string> tag_id_names;
+    std::vector<turtlebot3_disinfection::Scan> scan_list_;
 
-    const ros::Subscriber sub_apriltags_;
+    const ros::Subscriber sub_tag_scan_;
 };
 
 #endif
