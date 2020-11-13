@@ -266,6 +266,98 @@ void MotionPlanner::robotRotate(const sensor_msgs::LaserScan& msg)
     return;
 }
 
+// void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
+// {
+//     if (robot_state_ == 1)
+//     {
+//         publishVelocity(0, 0);
+//         return;
+//     }
+//     else if (robot_state_ == 2)
+//     {
+//         // Find the angle to the wall closest to the robot
+//         int min_index;
+//         const std::vector<int> full_range = {0, 359};
+//         getMinRange(msg, full_range, &min_index);
+//
+//         // If scan is complete and the closest wall is in LEFT_RANGE
+//         const int right_range_start = 250;
+//         const int right_range_end = 290;
+//         const int left_range_start = 70;
+//         const int left_range_end = 110;
+//
+//         if (scan_progress_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
+//         {
+//             ROS_INFO("Half turn complete");
+//             scan_progress_ = 1;
+//         }
+//         else if (scan_progress_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
+//         {
+//             ROS_INFO("Full turn complete");
+//
+//             // Change robot state back to stopped
+//             robot_state_ = 1;
+//             publishScanComplete();
+//         }
+//         else
+//         {
+//             // Keep spinning clockwise
+//             publishVelocity(0, -MAX_ANG_VEL/3);
+//         }
+//         return;
+//     }
+//
+//     float lin_vel;
+//     float ang_vel;
+//
+//     float left_min_range = getMinRange(msg, LEFT_RANGE);
+//     float dist_error = left_min_range - WALL_DIST;
+//
+//     ROS_INFO("range: %.3f\tdiff: %.3f", left_min_range, dist_error);
+//
+//     float angle_error = getMinRange(msg, LEFT_FRONT_RANGE) - getMinRange(msg, LEFT_BACK_RANGE);
+//
+//     // if (getRange(msg, LEFT_BACK) > 0.3f)
+//     // {
+//     //     angle_error = 0.0f;
+//     // }
+//
+//     // ROS_INFO("leftfront: %.3f\tleftback: %.3f\terr: %.3f", getRange(msg, LEFT_FRONT), getRange(msg, LEFT_BACK), angle_error);
+//
+//     float dist_error_ang_vel = mapToRange(dist_error, DIST_ERROR_RANGE, ANG_VEL_RANGE);
+//     ROS_INFO("dist error %.3f mapped to dist_ang_vel %.3f", dist_error, dist_error_ang_vel);
+//
+//     float angle_error_ang_vel = mapToRange(angle_error, ANGLE_ERROR_RANGE, ANG_VEL_RANGE);
+//     ROS_INFO("ang error %.3f mapped to ang_ang_vel %.3f", angle_error, angle_error_ang_vel);
+//
+//     ang_vel = dist_error_ang_vel + angle_error_ang_vel;
+//     if (ang_vel > MAX_ANG_VEL)
+//     {
+//         ang_vel = MAX_ANG_VEL;
+//     }
+//     else if (ang_vel < -MAX_ANG_VEL)
+//     {
+//         ang_vel = -MAX_ANG_VEL;
+//     }
+//
+//     // TODO: move this up somewhere
+//     if (left_min_range > WALL_MAX_TRACK_DIST)
+//     {
+//         ang_vel = 0;
+//     }
+//
+//     lin_vel = MAX_LIN_VEL;
+//
+//     float min_range_front = getMinRange(msg, FRONT_RANGE);
+//     ROS_INFO("min_range_front: %.3f", min_range_front);
+//     if (min_range_front < FRONT_TURN_DIST)
+//     {
+//         lin_vel = 0;
+//         ang_vel = -MAX_ANG_VEL;
+//     }
+//
+//     publishVelocity(lin_vel, ang_vel);
+// }
 
 void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
 {
@@ -273,6 +365,7 @@ void MotionPlanner::laserCallback(const sensor_msgs::LaserScan& msg)
     {
         case RobotState::WALL_FOLLOWING:
             robotFollowWall(msg);
+            break;
 
         case RobotState::STOPPED:
             publishVelocity(0, 0);

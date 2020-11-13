@@ -52,7 +52,7 @@ void TagScanner::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray
         if (tag_id >= 50)
         {
             // Set the robot state to scanning
-            robot_state_ = MotionPlanner::RobotState::STOPPED;
+            robot_state_ = MotionPlanner::RobotState::TAG_SCANNING;
             publishRobotState(robot_state_);
             addDetection(tag_id, detection);
         }
