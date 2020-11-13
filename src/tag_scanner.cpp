@@ -121,7 +121,7 @@ void TagScanner::scanCompleteCallback(const std_msgs::Empty& msg)
     if (scan_msg.people_ids.size() == 0)
     {
         // Sleep to represent disinfecting
-        ros::Duration(3).sleep();
+        ros::Duration(4).sleep();
         scan_msg.disinfected = true;
     }
     else

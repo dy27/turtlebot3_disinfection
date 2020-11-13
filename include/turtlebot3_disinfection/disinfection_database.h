@@ -14,6 +14,7 @@
 #include <std_msgs/Time.h>
 #include <geometry_msgs/PoseStamped.h>
 
+#include <boost/thread/thread.hpp>
 
 struct Location
 {
@@ -36,10 +37,12 @@ struct DetectionObject
 struct Person : DetectionObject
 {
     std::string name;
+    int last_seen_workspace_id;
 
     Person(int person_id)
         : DetectionObject(person_id)
         , name("Person" + std::to_string(person_id))
+        , last_seen_workspace_id(-1)
     {
     }
 };
@@ -103,7 +106,7 @@ public:
 
     void printPeople();
 
-    void printScanLog();
+    void printScans();
 
     void tagScanCallback(const turtlebot3_disinfection::Scan& msg);
 
