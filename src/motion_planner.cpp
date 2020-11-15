@@ -186,7 +186,7 @@ void MotionPlanner::robotFollowWall(const sensor_msgs::LaserScan& msg)
     float left_min_range = getMinRange(msg, LEFT_RANGE);
     float dist_error = left_min_range - WALL_DIST;
 
-    ROS_INFO("range: %.3f\tdiff: %.3f", left_min_range, dist_error);
+    //ROS_INFO("range: %.3f\tdiff: %.3f", left_min_range, dist_error);
 
     float angle_error = getMinRange(msg, LEFT_FRONT_RANGE) - getMinRange(msg, LEFT_BACK_RANGE);
 
@@ -195,13 +195,13 @@ void MotionPlanner::robotFollowWall(const sensor_msgs::LaserScan& msg)
     //     angle_error = 0.0f;
     // }
 
-    // ROS_INFO("leftfront: %.3f\tleftback: %.3f\terr: %.3f", getRange(msg, LEFT_FRONT), getRange(msg, LEFT_BACK), angle_error);
+    // //ROS_INFO("leftfront: %.3f\tleftback: %.3f\terr: %.3f", getRange(msg, LEFT_FRONT), getRange(msg, LEFT_BACK), angle_error);
 
     float dist_error_ang_vel = mapToRange(dist_error, DIST_ERROR_RANGE, ANG_VEL_RANGE);
-    ROS_INFO("dist error %.3f mapped to dist_ang_vel %.3f", dist_error, dist_error_ang_vel);
+    //ROS_INFO("dist error %.3f mapped to dist_ang_vel %.3f", dist_error, dist_error_ang_vel);
 
     float angle_error_ang_vel = mapToRange(angle_error, ANGLE_ERROR_RANGE, ANG_VEL_RANGE);
-    ROS_INFO("ang error %.3f mapped to ang_ang_vel %.3f", angle_error, angle_error_ang_vel);
+    //ROS_INFO("ang error %.3f mapped to ang_ang_vel %.3f", angle_error, angle_error_ang_vel);
 
     ang_vel = dist_error_ang_vel + angle_error_ang_vel;
     if (ang_vel > MAX_ANG_VEL)
@@ -222,11 +222,11 @@ void MotionPlanner::robotFollowWall(const sensor_msgs::LaserScan& msg)
     lin_vel = MAX_LIN_VEL;
 
     float min_range_front = getMinRange(msg, FRONT_RANGE);
-    ROS_INFO("min_range_front: %.3f", min_range_front);
+    //ROS_INFO("min_range_front: %.3f", min_range_front);
     if (min_range_front < FRONT_TURN_DIST)
     {
         lin_vel = 0;
-        ang_vel = -MAX_ANG_VEL;
+        ang_vel = -3*MAX_ANG_VEL/4;
     }
 
     publishVelocity(lin_vel, ang_vel);
@@ -247,12 +247,12 @@ void MotionPlanner::robotRotate(const sensor_msgs::LaserScan& msg)
 
     if (scan_progress_ == 0 && min_index >= right_range_start && min_index <= right_range_end)
     {
-        ROS_INFO("Half turn complete");
+        //ROS_INFO("Half turn complete");
         scan_progress_ = 1;
     }
     else if (scan_progress_ == 1 && min_index >= left_range_start && min_index <= left_range_end)
     {
-        ROS_INFO("Full turn complete");
+        //ROS_INFO("Full turn complete");
 
         // Change robot state back to stopped
         robot_state_ = RobotState::STOPPED;
@@ -261,7 +261,7 @@ void MotionPlanner::robotRotate(const sensor_msgs::LaserScan& msg)
     else
     {
         // Keep spinning clockwise
-        publishVelocity(0, -MAX_ANG_VEL/3);
+        publishVelocity(0, -2*MAX_ANG_VEL/4);
     }
     return;
 }

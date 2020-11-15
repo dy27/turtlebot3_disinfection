@@ -173,8 +173,8 @@ target_link_libraries(map_transform ${catkin_LIBRARIES})
 add_executable(social_distance_monitor src/social_distance_monitor.cpp)
 target_link_libraries(social_distance_monitor ${catkin_LIBRARIES})
 
-add_executable(disinfection_database src/disinfection_database.cpp)
-target_link_libraries(disinfection_database ${catkin_LIBRARIES})
+add_executable(scan_database src/scan_database.cpp)
+target_link_libraries(scan_database ${catkin_LIBRARIES})
 
 #############
 ## Install ##

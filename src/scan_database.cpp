@@ -1,13 +1,13 @@
 
-#include "turtlebot3_disinfection/disinfection_database.h"
+#include "turtlebot3_disinfection/scan_database.h"
 
 
-DisinfectionDatabase::DisinfectionDatabase(ros::NodeHandle* nh)
-    : sub_tag_scan_(nh->subscribe("/tag_scan", 1000, &DisinfectionDatabase::tagScanCallback, this))
+ScanDatabase::ScanDatabase(ros::NodeHandle* nh)
+    : sub_tag_scan_(nh->subscribe("/tag_scan", 1000, &ScanDatabase::tagScanCallback, this))
 {
 }
 
-DisinfectionDatabase::~DisinfectionDatabase()
+ScanDatabase::~ScanDatabase()
 {
     for (auto it=workspace_database_.begin(); it!=workspace_database_.end(); it++)
     {
@@ -20,7 +20,7 @@ DisinfectionDatabase::~DisinfectionDatabase()
     }
 }
 
-void DisinfectionDatabase::printWorkspaces()
+void ScanDatabase::printWorkspaces()
 {
     std::cout << "------------------------WORKSPACES------------------------" << std::endl;
 
@@ -28,6 +28,9 @@ void DisinfectionDatabase::printWorkspaces()
     {
         Workspace* workspace = it->second;
         std::cout << "Workspace ID: " << workspace->tag_id << std::endl;
+        std::cout << "Location: " << workspace->detection_locations[workspace->detection_locations.size()-1].x << ", "
+            << workspace->detection_locations[workspace->detection_locations.size()-1].y << ", "
+            << workspace->detection_locations[workspace->detection_locations.size()-1].z << std::endl;
         std::cout << "Visit Times:" << std::endl;
         for (auto& time : workspace->detection_times)
         {
@@ -43,7 +46,7 @@ void DisinfectionDatabase::printWorkspaces()
 }
 
 
-void DisinfectionDatabase::printPeople()
+void ScanDatabase::printPeople()
 {
     std::cout << "------------------------PEOPLE------------------------" << std::endl;
 
@@ -53,12 +56,18 @@ void DisinfectionDatabase::printPeople()
         std::cout << "Person ID: " << person->tag_id << std::endl;
         std::cout << "Person Name: " << person->name << std::endl;
         std::cout << "Last Seen Workspace ID:" << person->last_seen_workspace_id << std::endl;
+        // std::cout << "Last Seen Time: " << person->detection_times[person->detection_times.size()-1] << std::endl;
+        std::cout << "Detection Times:" << std::endl;
+        for (auto& time : person->detection_times)
+        {
+            std::cout << "\t- " << time << std::endl;
+        }
         std::cout << std::endl;
     }
 }
 
 
-void DisinfectionDatabase::printScans()
+void ScanDatabase::printScans()
 {
     std::cout << "------------------------SCANS------------------------" << std::endl;
     int scan_index = 0;
@@ -72,18 +81,18 @@ void DisinfectionDatabase::printScans()
         {
             std::cout << "\t- " << person_database_[person_id]->name << std::endl;
         }
-        std::cout << "Disinfected: " << scan_msg.disinfected << std::endl;
+        std::cout << "Disinfected: " << (bool)scan_msg.disinfected << std::endl;
         std::cout << std::endl;
 
         scan_index++;
     }
 }
 
-// void DisinfectionDatabase::updateWorkspace(const turtlebot3_disinfection::Scan& msg);
+// void ScanDatabase::updateWorkspace(const turtlebot3_disinfection::Scan& msg);
 //
-// void DisinfectionDatabase::updatePeople(const turtlebot3_disinfection::Scan& msg);
+// void ScanDatabase::updatePeople(const turtlebot3_disinfection::Scan& msg);
 
-void DisinfectionDatabase::tagScanCallback(const turtlebot3_disinfection::Scan& msg)
+void ScanDatabase::tagScanCallback(const turtlebot3_disinfection::Scan& msg)
 {
     // Add the scan to the scan list
     // scan_list_.push_back(ScanEntry(msg));
@@ -120,8 +129,11 @@ void DisinfectionDatabase::tagScanCallback(const turtlebot3_disinfection::Scan& 
 
 
     int n_people = msg.people_ids.size();
-    ROS_INFO("n_people: %d", n_people);
-    ROS_INFO("n_people: %d", msg.people_poses.size());
+    // ROS_INFO("n_people: %d", n_people);
+    // ROS_INFO("n_people: %d", msg.people_poses.size());
+
+    std::cout << "NEW SCAN RECEIVED" << std::endl;
+
     for (int i=0; i<n_people; i++)
     {
         // Attempt to find the person in the database map
@@ -152,7 +164,7 @@ void DisinfectionDatabase::tagScanCallback(const turtlebot3_disinfection::Scan& 
     }
 }
 
-void userInputLoop(DisinfectionDatabase* database)
+void userInputLoop(ScanDatabase* database)
 {
     while (true)
     {
@@ -161,15 +173,15 @@ void userInputLoop(DisinfectionDatabase* database)
         std::string user_input;
         std::cin >> user_input;
 
-        if (user_input == "people")
+        if (user_input == "p")
         {
             database->printPeople();
         }
-        else if (user_input == "workspaces")
+        else if (user_input == "w")
         {
             database->printWorkspaces();
         }
-        else if (user_input == "scans")
+        else if (user_input == "s")
         {
             database->printScans();
         }
@@ -178,13 +190,13 @@ void userInputLoop(DisinfectionDatabase* database)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "disinfection_database");
+    ros::init(argc, argv, "scan_database");
 
     ros::NodeHandle nh; // Create a node handle to pass to the class constructor
 
-    DisinfectionDatabase disinfection_database(&nh);
+    ScanDatabase scan_database(&nh);
 
-    boost::thread user_input_thread(userInputLoop, &disinfection_database);
+    boost::thread user_input_thread(userInputLoop, &scan_database);
 
     ros::spin();
 

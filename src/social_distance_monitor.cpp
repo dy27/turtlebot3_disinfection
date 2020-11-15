@@ -55,11 +55,19 @@ void SocialDistanceMonitor::tagDetectionCallback(const apriltag_ros::AprilTagDet
         for (int j=i+1; j<n_people; j++)
         {
             distance = calculateDistance(people_poses[i].second, people_poses[j].second);
+
+            std::cout << "Person " << people_poses[i].first << ", Person " << people_poses[j].first
+                << "\tDistance: " << distance << " metres";
+
             if (distance < sep_distance_)
             {
                 // Issue alert
+                std::cout << "\t<---ALERT";
             }
-            ROS_INFO("Person %d and Person %d are %.3f metres apart", people_poses[i].first, people_poses[j].first, distance);
+            std::cout << std::endl;
+
+            // ROS_INFO("Person %d and Person %d are %.3f metres apart", people_poses[i].first, people_poses[j].first, distance);
+
         }
     }
 }

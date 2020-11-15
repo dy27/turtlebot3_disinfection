@@ -43,20 +43,35 @@ void TagScanner::publishRobotState(int state)
  */
 void TagScanner::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg)
 {
+    ROS_INFO("TAG CALLBACK");
     // Iterate through all detected tags
     for (const auto& detection : msg.detections)
     {
         int tag_id = detection.id[0];
+        ROS_INFO("TAG ID: %d", tag_id);
 
         // If a workspace is detected
         if (tag_id >= 50)
         {
+            float sum_squares = std::pow(detection.pose.pose.pose.position.x, 2)
+                + std::pow(detection.pose.pose.pose.position.y, 2)
+                + std::pow(detection.pose.pose.pose.position.z, 2);
+
+            float distance = std::sqrt(sum_squares);
+
+            ROS_INFO("xyz: %f %f %f \tTAG DISTANCE: %f", detection.pose.pose.pose.position.x,
+                detection.pose.pose.pose.position.y, detection.pose.pose.pose.position.z, distance);
+            if (distance > 0.45)
+            {
+                continue;
+            }
+
             // If this detection was the last workspace to be scanned
             if (last_workspace_scanned_id == tag_id)
             {
                 // If the workspace was scanned already scanned in the last 20 seconds
                 ros::Duration diff = detection.pose.header.stamp - last_workspace_scanned_time;
-                if (diff < ros::Duration(20))
+                if (diff < ros::Duration(30))
                 {
                     // Skip scanning this workspace
                     continue;

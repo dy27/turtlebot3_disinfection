@@ -7,13 +7,13 @@
 
     <node name="motion_planner" pkg="turtlebot3_disinfection" type="motion_planner" output="screen"/>
 
-    <!-- <node name="tag_scanner" pkg="turtlebot3_disinfection" type="tag_scanner" output="screen"/> -->
+    <node name="tag_scanner" pkg="turtlebot3_disinfection" type="tag_scanner" output="screen"/>
 
     <node name="map_transform" pkg="turtlebot3_disinfection" type="map_transform" output="screen"/>
 
     <!-- <node name="social_distance_monitor" pkg="turtlebot3_disinfection" type="social_distance_monitor" output="screen"/> -->
 
-    <!-- <node name="disinfection_database" pkg="turtlebot3_disinfection" type="disinfection_database" output="screen"/> -->
+    <!-- <node name="scan_database" pkg="turtlebot3_disinfection" type="scan_database" output="screen"/> -->
 
     <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/>
 

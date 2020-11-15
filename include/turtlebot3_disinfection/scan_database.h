@@ -1,5 +1,5 @@
-#ifndef DISINFECTION_DATABASE_
-#define DISINFECTION_DATABASE_
+#ifndef SCAN_DATABASE_
+#define SCAN_DATABASE_
 
 #include "ros/ros.h"
 
@@ -95,12 +95,12 @@ struct Workspace : DetectionObject
 // };
 
 
-class DisinfectionDatabase
+class ScanDatabase
 {
 public:
-    DisinfectionDatabase(ros::NodeHandle* nh);
+    ScanDatabase(ros::NodeHandle* nh);
 
-    ~DisinfectionDatabase();
+    ~ScanDatabase();
 
     void printWorkspaces();
 

@@ -11,6 +11,7 @@
 #include <vector>
 #include <unordered_map>
 #include <utility>      // std::pair
+#include <cmath>
 #include <std_msgs/Empty.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Time.h>
