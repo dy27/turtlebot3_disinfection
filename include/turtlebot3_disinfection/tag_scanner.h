@@ -1,3 +1,12 @@
+/**
+ * tag_scanner.h
+ *
+ * Node for scanning April tags corresponding to people and workspaces. When a workspace is detected, a scan is
+ * performed to detect people working at the workspace.
+ *
+ * Authors: Annie Sun, Bharath Santosh, Bohan Zhang, David Young
+ */
+
 #ifndef TAG_SCANNER_
 #define TAG_SCANNER_
 
@@ -10,7 +19,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <utility>      // std::pair
+#include <utility>
 #include <cmath>
 #include <std_msgs/Empty.h>
 #include <std_msgs/Int8.h>
@@ -26,7 +35,7 @@ class TagScanner
 
         TagScanner(ros::NodeHandle* nh);
 
-        void publishRobotState(int state);
+        void publishRobotState(int state) const;
 
         void tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg);
 

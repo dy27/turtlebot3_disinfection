@@ -1,3 +1,12 @@
+/**
+ * scan_database.h
+ *
+ * Database node to store detections of people and workspaces. Information is sent to the database node through the
+ * /tag_scan topic using a Scan msg format.
+ *
+ * Authors: Annie Sun, Bharath Santosh, Bohan Zhang, David Young
+ */
+
 #ifndef SCAN_DATABASE_
 #define SCAN_DATABASE_
 
@@ -9,12 +18,8 @@
 #include <vector>
 #include <unordered_map>
 #include <turtlebot3_disinfection/Scan.h>
-
-#include <std_msgs/Int8.h>
-#include <std_msgs/Time.h>
-#include <geometry_msgs/PoseStamped.h>
-
 #include <boost/thread/thread.hpp>
+
 
 struct Location
 {
@@ -56,70 +61,30 @@ struct Workspace : DetectionObject
 };
 
 
-// struct ScanEntry
-// {
-//     const int workspace_id;
-//     const Location workspace_location;
-//
-//     const std::vector<int> people_ids;
-//     const std::vector<Location> people_locations;
-//
-//     const ros::Time scan_end_time;
-//
-//     const bool disinfected;
-//
-//     ScanEntry(const turtlebot3_disinfection::Scan& msg)
-//         : workspace_id(msg.workspace_id)
-//         , workspace_location({(float)msg.workspace_pose.pose.position.x,
-//                               (float)msg.workspace_pose.pose.position.y,
-//                               (float)msg.workspace_pose.pose.position.z})
-//         , people_ids(msg.people_ids)
-//         , people_locations(getPeopleLocations(msg))
-//         , scan_end_time(msg.scan_end_time.data)
-//         , disinfected(msg.disinfected)
-//     {
-//     }
-//
-//     std::vector<Location> getPeopleLocations(const turtlebot3_disinfection::Scan& msg)
-//     {
-//         std::vector<Location> locations;
-//         locations.reserve(msg.people_ids.size());
-//
-//         for (auto& pose_msg : msg.people_poses)
-//         {
-//             locations.push_back({pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z});
-//         }
-//
-//         return locations;
-//     }
-// };
-
-
 class ScanDatabase
 {
-public:
-    ScanDatabase(ros::NodeHandle* nh);
+    public:
+        ScanDatabase(ros::NodeHandle* nh);
 
-    ~ScanDatabase();
+        ~ScanDatabase();
 
-    void printWorkspaces();
+        void printWorkspaces() const;
 
-    void printPeople();
+        void printPeople() const;
 
-    void printScans();
+        void printScans();
 
-    void tagScanCallback(const turtlebot3_disinfection::Scan& msg);
+        void tagScanCallback(const turtlebot3_disinfection::Scan& msg);
 
-private:
+    private:
 
-    std::unordered_map<int,Workspace*> workspace_database_;
-    std::unordered_map<int,Person*> person_database_;
+        std::unordered_map<int,Workspace*> workspace_database_;
 
-    // std::vector<ScanEntry> scan_list_;
+        std::unordered_map<int,Person*> person_database_;
 
-    std::vector<turtlebot3_disinfection::Scan> scan_list_;
+        std::vector<turtlebot3_disinfection::Scan> scan_list_;
 
-    const ros::Subscriber sub_tag_scan_;
+        const ros::Subscriber sub_tag_scan_;
 };
 
 #endif

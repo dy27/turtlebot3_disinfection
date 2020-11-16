@@ -1,3 +1,11 @@
+/**
+ * motion_planner.h
+ *
+ * This node controls all navigation and movement of the robot by publishing to the /cmd_vel topic.
+ *
+ * Authors: Annie Sun, Bharath Santosh, Bohan Zhang, David Young
+ */
+
 #ifndef MOTION_PLANNER_H_
 #define MOTION_PLANNER_H_
 
@@ -12,39 +20,54 @@
 #include <std_msgs/Empty.h>
 #include <std_msgs/Int8.h>
 
+
 class MotionPlanner
 {
     public:
+        // Enumeration of robot state values.
         enum RobotState {
             WALL_FOLLOWING,
             STOPPED,
             TAG_SCANNING
         };
 
+        // Class constructor which initialises publishers and subscribers, and loads parameters.
         MotionPlanner(ros::NodeHandle* nh);
 
-        void publishVelocity(float lin_vel, float ang_vel);
+        // Publishes to the /cmd_vel topic to make the robot move at the specified linear and angular velocities.
+        void publishVelocity(float lin_vel, float ang_vel) const;
 
-        void publishScanComplete();
+        // Publishes to the /rotation_complete topic to signal that a full rotation has been performed by the robot.
+        void publishScanComplete() const;
 
-        float getRange(const sensor_msgs::LaserScan& msg, int index, int n_measurements);
+        // Returns the distance at a certain index in the array of measurements from the laser.
+        float getRange(const sensor_msgs::LaserScan& msg, int index, int n_measurements) const;
 
+        // Returns the median of a vector of float values.
+        float median(std::vector<float>& distances) const;
+
+        // Returns the closest distance measurement from the LIDAR within a specified angle range.
         float getMinRange(const sensor_msgs::LaserScan& msg, const std::vector<int>& angle_range,
-            int* min_index_result);
+            int* min_index_result) const;
 
-        float median(std::vector<float>& distances);
-
+        // Given a value, an interval, and a new interval, computes the new value which divides the new interval in the
+        // same ratio that the given value divides the given interval.
         float mapToRange(float value, const std::vector<float>& range, const std::vector<float>& new_range,
-            bool saturate);
+            bool saturate) const;
 
-        void robotFollowWall(const sensor_msgs::LaserScan& msg);
+        // Controls the robot motion to make it follow a nearby left wall.
+        void robotFollowWall(const sensor_msgs::LaserScan& msg) const;
 
+        // Controls the robot motion to make it perform a scan of its surroundings by rotating once.
         void robotRotate(const sensor_msgs::LaserScan& msg);
 
+        // Callback function for the LaserScan msg which contains the LIDAR measurements.
         void laserCallback(const sensor_msgs::LaserScan& msg);
 
+        //  Callback function to update the state of the robot.
         void robotStateCallback(const std_msgs::Int8& msg);
 
+        // Function to load ROS parameters from the parameter server
         template <class T>
         T getParam(ros::NodeHandle* nh, std::string param_name)
         {
@@ -56,11 +79,10 @@ class MotionPlanner
         }
 
     private:
-        // 0: Wall following
-        // 1: Robot stopped for disinfection
-        // 2: Robot scanning for people
+        // Integer representing the state of the robot, refer to the RobotState enum
         int robot_state_;
 
+        // Integer representing the scan progress as the robot is doing a full revolution to scan its surroundings
         int scan_progress_;
 
         const float WALL_DIST;
