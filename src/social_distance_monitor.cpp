@@ -21,8 +21,29 @@ SocialDistanceMonitor::SocialDistanceMonitor(ros::NodeHandle* nh, float separati
 }
 
 /**
+ * Calculates the Euclidean distance between two poses in 3D space.
+ *
+ * @param msg1 The first Pose msg to use in the distance calculation.
+ * @param msg2 The second Pose msg to use in the distance calculation.
+ * @return The distance between the two poses.
+ */
+float SocialDistanceMonitor::calculateDistance(const geometry_msgs::Pose& msg1,
+    const geometry_msgs::Pose& msg2) const
+{
+    // Calculate the sum of square differences
+    float sum_square_diffs = std::pow(msg1.position.x - msg2.position.x, 2)
+                           + std::pow(msg1.position.y - msg2.position.y, 2)
+                           + std::pow(msg1.position.z - msg2.position.z, 2);
+
+    // Calculat the square root of sum_square_diffs to get the distance
+    float distance = std::sqrt(sum_square_diffs);
+
+    return distance;
+}
+
+/**
  * Callback function which is called when an array of April tag detections is received. This function then iterates
- * through the tags that correspond to people and finds the distance between each pair of people.
+ * through the tags that correspond to people and prints the distance between each pair of people.
  *
  * @param msg AprilTagDetectionArray msg containing an array of detected April tags from a single camera frame.
  */
@@ -74,27 +95,6 @@ void SocialDistanceMonitor::tagDetectionCallback(const apriltag_ros::AprilTagDet
             std::cout << std::endl;
         }
     }
-}
-
-/**
- * Calculates the Euclidean distance between two poses in 3D space.
- *
- * @param msg1 The first Pose msg to use in the distance calculation.
- * @param msg2 The second Pose msg to use in the distance calculation.
- * @return The distance between the two poses.
- */
-float SocialDistanceMonitor::calculateDistance(const geometry_msgs::Pose& msg1,
-    const geometry_msgs::Pose& msg2) const
-{
-    // Calculate the sum of square differences
-    float sum_square_diffs = std::pow(msg1.position.x - msg2.position.x, 2)
-                           + std::pow(msg1.position.y - msg2.position.y, 2)
-                           + std::pow(msg1.position.z - msg2.position.z, 2);
-
-    // Calculat the square root of sum_square_diffs to get the distance
-    float distance = std::sqrt(sum_square_diffs);
-
-    return distance;
 }
 
 

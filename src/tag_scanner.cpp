@@ -27,7 +27,7 @@ TagScanner::TagScanner(ros::NodeHandle* nh)
 /**
  * Publishes a robot state to the /robot_state topic to request a change in behaviour in the motion_planner node.
  *
- * @param state Integer value representing the robot state. The values are
+ * @param state Integer value representing the robot state.
  */
 void TagScanner::publishRobotState(int state) const
 {
@@ -37,9 +37,10 @@ void TagScanner::publishRobotState(int state) const
 }
 
 /**
- * Publishes a robot state to the /robot_state topic to request a change in behaviour in the motion_planner node.
+ * Callback function for April tag detections from the apriltag_ros node. This function processes the detections and
+ * publishes any necessary changes to the robot state.
  *
- * @param state Integer value representing the robot state.
+ * @param msg Array of AprilTagDetection messages.
  */
 void TagScanner::tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg)
 {

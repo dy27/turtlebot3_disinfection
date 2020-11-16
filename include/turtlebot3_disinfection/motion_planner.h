@@ -85,29 +85,34 @@ class MotionPlanner
         // Integer representing the scan progress as the robot is doing a full revolution to scan its surroundings
         int scan_progress_;
 
-        const float WALL_DIST;
-        const float FRONT_TURN_DIST;
-        const float WALL_MAX_TRACK_DIST;
-        const float MAX_LIN_VEL;
-        const float MAX_ANG_VEL;
-        const float MAX_RANGE;
-
-        const std::vector<int> FRONT_RANGE;
-        const std::vector<int> LEFT_RANGE;
-        const std::vector<int> LEFT_FRONT_RANGE;
-        const std::vector<int> LEFT_BACK_RANGE;
-
-        const std::vector<float> ANGLE_ERROR_RANGE;
-        const std::vector<float> DIST_ERROR_RANGE;
-        const std::vector<float> ANG_VEL_RANGE;
-
+        // Robot velocity publisher
         const ros::Publisher pub_vel_;
 
+        // LIDAR scan subscriber
         const ros::Subscriber sub_laser_;
 
+        // Robot state subscriber
         const ros::Subscriber sub_robot_state_;
 
+        // Rotation complete publisher
         const ros::Publisher pub_rotation_complete_;
+
+        /* Wall-following Algorithm Parameters */
+        const float WALL_DIST; // Distance to maintain from the left wall
+        const float FRONT_TURN_DIST; // Distance to front object before a right turn is performed
+        const float WALL_MAX_TRACK_DIST; // The maximum distance on the left where a wall will still be tracked
+        const float MAX_LIN_VEL; // Maximum linear velocity
+        const float MAX_ANG_VEL; // Maximum angular velocity
+        const float MAX_RANGE; // Maximum LIDAR range
+        const std::vector<int> FRONT_RANGE; // Front angle range for detecting objects in front
+        const std::vector<int> LEFT_RANGE; // Left angle range for wall tracking
+        const std::vector<int> LEFT_FRONT_RANGE; // Left front angle range for wall slope estimation
+        const std::vector<int> LEFT_BACK_RANGE; // Left back angle range for wall slope estimation
+        const std::vector<float> DIST_ERROR_RANGE; // The dist_error range to map to the range of angular velocities
+        const std::vector<float> ANGLE_ERROR_RANGE; // The angle_error range to map to the range of angular velocities
+        const std::vector<float> ANG_VEL_RANGE; // The angular velocity range which the error ranges map to
+
+
 };
 
 #endif

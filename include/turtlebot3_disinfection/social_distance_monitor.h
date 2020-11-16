@@ -19,19 +19,24 @@
 #include <geometry_msgs/Pose.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 
+
 class SocialDistanceMonitor
 {
     public:
+        // Class constructor which initialises subscribers and sets the separation distance.
         SocialDistanceMonitor(ros::NodeHandle* nh, float separation_distance);
 
+        // Calculates the Euclidean distance between two poses in 3D space.
         float calculateDistance(const geometry_msgs::Pose& msg1, const geometry_msgs::Pose& msg2) const;
 
+        // Callback function which prints the distance between people.
         void tagDetectionCallback(const apriltag_ros::AprilTagDetectionArray& msg) const;
 
     private:
-
+        // The distance threshold for social distancing alerts.
         const float sep_distance_;
 
+        // Subscriber to April tag detections.
         const ros::Subscriber sub_apriltag_;
 };
 
